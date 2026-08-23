@@ -7,7 +7,7 @@ export type Anim = 'none' | 'fade' | 'slide' | 'pop';
 export type Display = 'label' | 'logo' | 'both' | 'plusIcon';
 export type Align = 'left' | 'center' | 'right';
 export type OptInLayout = 'row' | 'column';
-export type ViewKey = 'preview' | 'rules' | 'settings' | 'mapping' | 'identity' | 'setup' | 'examples';
+export type ViewKey = 'preview' | 'rules' | 'settings' | 'mapping' | 'identity' | 'setup' | 'examples' | 'assistant';
 
 export interface WidgetState {
   type: InterceptType;

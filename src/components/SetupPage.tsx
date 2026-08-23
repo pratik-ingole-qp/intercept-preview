@@ -13,14 +13,18 @@ import {
   TROUBLESHOOTING_OUTRO,
 } from '../data';
 import {
+  CxSurveyPrerequisiteIllustration,
   EmbedSelectorIllustration,
   HeadInsertionIllustration,
   TriggerRulesIllustration,
   TypePickerIllustration,
+  WebsiteUrlIllustration,
   WorkspaceNavIllustration,
 } from './SetupIllustrations';
 
 const STEP_ILLUSTRATIONS: Record<string, ReactNode> = {
+  'cx-survey': <CxSurveyPrerequisiteIllustration />,
+  'website-url': <WebsiteUrlIllustration />,
   navigate: <WorkspaceNavIllustration />,
   type: <TypePickerIllustration />,
   'embed-selector': <EmbedSelectorIllustration />,

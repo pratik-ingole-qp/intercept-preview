@@ -1,15 +1,11 @@
-import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { EXAMPLE_CATEGORIES, EXAMPLES_INTRO, EXAMPLE_SCENARIOS } from '../data';
-import type { InterceptType } from '../types';
+import { slugify } from '../slug';
 
-interface Props {
-  onNavigateToPreview: (type: InterceptType) => void;
-  onNavigateToRule: (ruleName: string) => void;
-}
-
-export default function ExamplesPage({ onNavigateToPreview, onNavigateToRule }: Props) {
-  const [active, setActive] = useState(EXAMPLE_SCENARIOS[0].key);
-  const example = EXAMPLE_SCENARIOS.find((e) => e.key === active) ?? EXAMPLE_SCENARIOS[0];
+export default function ExamplesPage() {
+  const { key } = useParams<{ key?: string }>();
+  const navigate = useNavigate();
+  const example = EXAMPLE_SCENARIOS.find((e) => e.key === key) ?? EXAMPLE_SCENARIOS[0];
 
   return (
     <div className="workbench rules-workbench">
@@ -23,9 +19,9 @@ export default function ExamplesPage({ onNavigateToPreview, onNavigateToRule }: 
               <span className="ctl-label">{category}</span>
               <div className="stack" role="group">
                 {items.map((e) => (
-                  <button key={e.key} type="button" aria-pressed={active === e.key} onClick={() => setActive(e.key)}>
+                  <Link key={e.key} to={`/examples/${e.key}`} aria-pressed={example.key === e.key}>
                     {e.title}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -50,7 +46,7 @@ export default function ExamplesPage({ onNavigateToPreview, onNavigateToRule }: 
                 <h4>Setup</h4>
                 <div className="rule-config-row" style={{ marginBottom: 10 }}>
                   <span className="rule-chip">Type:</span>
-                  <button className="inline-link" type="button" onClick={() => onNavigateToPreview(example.type)}>
+                  <button className="inline-link" type="button" onClick={() => navigate(`/preview/${example.type}`)}>
                     {example.typeLabel} →
                   </button>
                 </div>
@@ -58,7 +54,12 @@ export default function ExamplesPage({ onNavigateToPreview, onNavigateToRule }: 
                   <div className="rule-config-row">
                     <span className="rule-chip">Rules:</span>
                     {example.rules.map((r) => (
-                      <button key={r} className="inline-link" type="button" onClick={() => onNavigateToRule(r)}>
+                      <button
+                        key={r}
+                        className="inline-link"
+                        type="button"
+                        onClick={() => navigate(`/rules/${slugify(r)}`)}
+                      >
                         {r} →
                       </button>
                     ))}

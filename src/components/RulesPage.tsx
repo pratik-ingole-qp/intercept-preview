@@ -1,16 +1,12 @@
-import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { OPERANDS, OPERANDS_INTRO, RULES, RULE_GROUPS, RULE_TO_IDENTITY_SECTION } from '../data';
+import { slugify } from '../slug';
 
-interface Props {
-  initialRule?: string;
-  onNavigateToIdentity: (sectionKey: string) => void;
-}
-
-export default function RulesPage({ initialRule, onNavigateToIdentity }: Props) {
-  const [active, setActive] = useState(initialRule ?? RULES[0].name);
-  const [showOperands, setShowOperands] = useState(false);
-
-  const rule = RULES.find((r) => r.name === active) ?? RULES[0];
+export default function RulesPage() {
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
+  const showOperands = slug === 'operands';
+  const rule = (!showOperands && RULES.find((r) => slugify(r.name) === slug)) || RULES[0];
   const identitySection = RULE_TO_IDENTITY_SECTION[rule.name];
 
   return (
@@ -22,17 +18,17 @@ export default function RulesPage({ initialRule, onNavigateToIdentity }: Props) 
             <span className="ctl-label">{group.title}</span>
             <div className="stack" role="group">
               {group.rules.map((name) => (
-                <button key={name} type="button" aria-pressed={active === name} onClick={() => setActive(name)}>
+                <Link key={name} to={`/rules/${slugify(name)}`} aria-pressed={!showOperands && rule.name === name}>
                   {name}
-                </button>
+                </Link>
               ))}
             </div>
           </div>
         ))}
         <div className="divider" />
-        <button className="replay" type="button" onClick={() => setShowOperands((v) => !v)}>
+        <Link className="replay" to={showOperands ? `/rules/${slugify(RULES[0].name)}` : '/rules/operands'}>
           {showOperands ? 'Hide operands reference' : 'Show operands reference'}
-        </button>
+        </Link>
       </aside>
 
       <div className="rule-detail-wrap">
@@ -65,7 +61,7 @@ export default function RulesPage({ initialRule, onNavigateToIdentity }: Props) 
               {identitySection && (
                 <p className="rule-scenario" style={{ marginTop: -10, marginBottom: 20 }}>
                   This rule depends on how visitor uniqueness is defined —{' '}
-                  <button className="inline-link" type="button" onClick={() => onNavigateToIdentity(identitySection)}>
+                  <button className="inline-link" type="button" onClick={() => navigate(`/identity/${identitySection}`)}>
                     see Visitor Identity →
                   </button>
                 </p>

@@ -1116,6 +1116,13 @@ export const TABS: TabContent[] = [
     subtitle:
       'Real-world scenarios across e-commerce, SaaS, marketing, media, support, and mobile — each pairing an intercept type with the trigger rules that make it work. A practical index, not a new mechanic.',
   },
+  {
+    key: 'assistant',
+    label: 'Build assistant',
+    title: 'From "which rules" to "what do I type"',
+    subtitle:
+      'A worked demonstration: the same scenario as a pointer and as an instruction, then a four-question assistant that assembles the same recipe from the other direction — for people who know what they want but not which scenario they are.',
+  },
 ];
 
 export interface RuleGroup {
@@ -1162,6 +1169,16 @@ export interface SetupStep {
 
 export const SETUP_STEPS: SetupStep[] = [
   {
+    key: 'cx-survey',
+    title: 'Make sure a CX survey already exists',
+    body: "Intercept doesn't create surveys itself — it attaches to a survey that already exists in your workspace's CX Feedback account. The survey you want to show needs to exist there before you create the intercept, not after.",
+  },
+  {
+    key: 'website-url',
+    title: 'Set the project\'s Website URL correctly',
+    body: 'This single domain is also the project\'s entire embed allowlist. The widget checks the page\'s Origin against it and refuses to load on a mismatch — get this exactly right, including the correct subdomain, before installing the snippet.',
+  },
+  {
     key: 'navigate',
     title: 'Navigate to the project',
     body: 'Open the Workspace, then the Project you want to add an intercept to.',
@@ -1180,5 +1197,303 @@ export const SETUP_STEPS: SetupStep[] = [
     key: 'trigger-rules',
     title: 'Configure Trigger Rules',
     body: 'Set the conditions under which the survey should appear, then save the intercept.',
+  },
+];
+
+/* ============================================================
+   BUILD RECIPES — the missing "how" layer.
+
+   EXAMPLE_SCENARIOS tell a reader which rules to combine; these
+   turn that into the literal rows they have to fill in. Values
+   here are deliberately concrete (`/checkout`, not "your
+   checkout URL") — a vague recipe is the same pointing problem
+   wearing a checklist.
+   ============================================================ */
+export interface RecipeRow {
+  rule: string;
+  field?: string;
+  operand: string;
+  value: string;
+  note: string;
+}
+
+export interface Recipe {
+  type: InterceptType;
+  typeLabel: string;
+  match: 'all' | 'any' | 'none';
+  rows: RecipeRow[];
+  verify: string;
+}
+
+export const RECIPE_MATCH_LABEL: Record<Recipe['match'], string> = {
+  all: 'Match ALL of the following (AND)',
+  any: 'Match ANY of the following (OR)',
+  none: 'No targeting rules — fires everywhere the snippet is installed',
+};
+
+export const EXAMPLE_RECIPES: Record<string, Recipe> = {
+  'cart-rescue': {
+    type: 'exit',
+    typeLabel: 'Exit intent',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Page URL',
+        operand: 'Includes',
+        value: '/checkout',
+        note: 'Includes, not Equals — checkout URLs usually carry a step or cart id after the path.',
+      },
+      {
+        rule: 'Data Layer',
+        field: 'cart_value',
+        operand: 'Greater than',
+        value: '0',
+        note: 'Your site must already push cart_value into the data layer before the snippet loads.',
+      },
+    ],
+    verify: 'Add something to the cart, open /checkout, then move the cursor up out of the viewport — the card should appear once.',
+  },
+  'post-purchase-nps': {
+    type: 'popup',
+    typeLabel: 'Pop-up',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Page URL',
+        operand: 'Equals to',
+        value: 'thank-you.html',
+        note: 'Equals is safe here because the confirmation page is a single fixed URL.',
+      },
+    ],
+    verify: 'Complete a test order and land on the confirmation page — no timing rule needed, it fires on arrival.',
+  },
+  'loyalty-checkin': {
+    type: 'popup',
+    typeLabel: 'Pop-up',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Total Visits (Website Entry Count)',
+        operand: 'Greater than',
+        value: '3',
+        note: 'Counted from the visitor cookie — clearing cookies resets this to zero.',
+      },
+      {
+        rule: 'User Type',
+        operand: 'Equals to',
+        value: 'Returning Visitor',
+        note: 'Redundant-looking but cheap: it excludes anyone whose count was inflated by a shared device.',
+      },
+    ],
+    verify: 'Hard to test live — temporarily drop the count to 1 while checking, then set it back to 3.',
+  },
+  'pricing-objection': {
+    type: 'exit',
+    typeLabel: 'Exit intent',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Page URL',
+        operand: 'Includes',
+        value: '/pricing',
+        note: 'One rule is genuinely enough here — exit intent is already doing the hard filtering.',
+      },
+    ],
+    verify: 'Open /pricing and move the cursor toward the tab bar.',
+  },
+  'feature-adoption': {
+    type: 'embed',
+    typeLabel: 'Inline embed',
+    match: 'all',
+    rows: [
+      {
+        rule: 'HTML Selector',
+        operand: 'Exists',
+        value: '.feature-banner',
+        note: 'Leading dot matters — this is a CSS selector, not a class name.',
+      },
+    ],
+    verify: 'Also set the Embed Selector on the intercept itself (Setup step 5) — the rule decides whether it fires, the embed selector decides where it lands.',
+  },
+  'bug-report-desktop': {
+    type: 'feedback',
+    typeLabel: 'Feedback tab',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Device Type',
+        operand: 'Equals to',
+        value: 'Desktop',
+        note: 'Evaluated server-side from the user agent, so it costs nothing on the page.',
+      },
+    ],
+    verify: 'Load the site on a phone — the tab should be absent, not just small.',
+  },
+  'welcome-offer': {
+    type: 'popup',
+    typeLabel: 'Pop-up',
+    match: 'all',
+    rows: [
+      {
+        rule: 'User Type',
+        operand: 'Equals to',
+        value: 'New Visitor',
+        note: 'New means no prior visitor cookie — incognito windows always read as new.',
+      },
+      {
+        rule: 'Session Duration (Total Time)',
+        operand: 'Greater than',
+        value: '30',
+        note: 'Seconds, across the whole session — not time on the current page.',
+      },
+    ],
+    verify: 'Open an incognito window, wait past 30 seconds without navigating away.',
+  },
+  'campaign-attribution': {
+    type: 'embed',
+    typeLabel: 'Inline embed',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Query Param (URL Parameter)',
+        field: 'source',
+        operand: 'Equals to',
+        value: 'newsletter',
+        note: 'Parameter name and value are two separate inputs — the name goes in its own field.',
+      },
+    ],
+    verify: 'Visit any page with ?source=newsletter appended.',
+  },
+  'article-helpfulness': {
+    type: 'popup',
+    typeLabel: 'Pop-up',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Scroll Depth (Vertical)',
+        operand: 'Greater than',
+        value: '50',
+        note: 'Percent of page height. On a short page 50% arrives instantly, which is why the URL rule is paired with it.',
+      },
+      {
+        rule: 'Page URL',
+        operand: 'Includes',
+        value: '/blog',
+        note: 'Confines the scroll rule to long-form pages where depth actually means engagement.',
+      },
+    ],
+    verify: 'Open a blog post and scroll past halfway.',
+  },
+  'regional-feedback': {
+    type: 'feedback',
+    typeLabel: 'Feedback tab',
+    match: 'all',
+    rows: [
+      {
+        rule: 'Country',
+        operand: 'Equals to',
+        value: 'Canada',
+        note: 'IP geolocation — a VPN will defeat it, which is fine for a feedback channel.',
+      },
+    ],
+    verify: 'Leave the schedule empty so it runs indefinitely.',
+  },
+  'error-recovery': {
+    type: 'popup',
+    typeLabel: 'Pop-up',
+    match: 'all',
+    rows: [
+      {
+        rule: 'HTML Selector',
+        operand: 'Exists',
+        value: '.error-message-box',
+        note: 'Reacts to page state — it fires when the element renders, not on navigation.',
+      },
+    ],
+    verify: 'Trigger the error deliberately (submit an invalid form) and watch for the card.',
+  },
+  'mobile-onboarding': {
+    type: 'mobile',
+    typeLabel: 'Mobile prompt',
+    match: 'none',
+    rows: [],
+    verify: 'Nothing to configure here — the Mobile SDK carries its own rule set (Time Spent, View Count, Day, Date) and must be built into the app first.',
+  },
+};
+
+/* ============================================================
+   SETUP ASSISTANT — the same recipes, entered from the other end.
+   Examples answer "I picked a scenario, now what?"; this answers
+   "I don't know which scenario I am."
+   ============================================================ */
+export interface AssistantOption {
+  value: string;
+  label: string;
+  hint: string;
+  /** Key into ASSISTANT_ICONS. */
+  icon: string;
+  /** When present, the option is only offered for these `when` answers. */
+  onlyWhen?: string[];
+}
+
+export interface AssistantQuestion {
+  key: 'where' | 'who' | 'when' | 'tone';
+  prompt: string;
+  help: string;
+  options: AssistantOption[];
+}
+
+export const ASSISTANT_INTRO =
+  'Three questions, or four when the third leaves the shape open. Every answer maps to a rule row you already have documented — nothing here is guessed, and no answer is sent anywhere.';
+
+export const ASSISTANT_QUESTIONS: AssistantQuestion[] = [
+  {
+    key: 'where',
+    prompt: 'Where should it appear?',
+    help: 'Decides whether you need a Page URL rule, an HTML Selector, or nothing at all.',
+    options: [
+      { value: 'section', label: 'On one section of the site', hint: 'e.g. everything under /pricing or /blog', icon: 'section' },
+      { value: 'exact', label: 'On one exact page', hint: 'e.g. the order confirmation page', icon: 'exact' },
+      { value: 'element', label: 'Wherever a specific element renders', hint: 'e.g. a banner or an error box', icon: 'element' },
+      { value: 'anywhere', label: 'Anywhere on the site', hint: 'no page condition at all', icon: 'anywhere' },
+    ],
+  },
+  {
+    key: 'who',
+    prompt: 'Who should see it?',
+    help: 'Maps onto the visitor & device rule group.',
+    options: [
+      { value: 'new', label: 'First-time visitors', hint: 'User Type = New Visitor', icon: 'new' },
+      { value: 'returning', label: 'Loyal / repeat visitors', hint: 'User Type + Total Visits', icon: 'returning' },
+      { value: 'campaign', label: 'People from a specific campaign', hint: 'Query Param on the landing URL', icon: 'campaign' },
+      { value: 'everyone', label: 'Everyone', hint: 'no audience condition', icon: 'everyone' },
+    ],
+  },
+  {
+    key: 'when',
+    prompt: 'When should it fire?',
+    help: 'This is the question that most often picks the intercept type for you.',
+    options: [
+      { value: 'arrival', label: 'As soon as the page loads', hint: 'the outcome is already known on arrival', icon: 'arrival' },
+      { value: 'engaged', label: 'Once they have engaged', hint: 'after time on page or scroll depth', icon: 'engaged' },
+      { value: 'leaving', label: 'Just as they try to leave', hint: 'exit intent', icon: 'leaving' },
+      { value: 'always', label: 'Always available, never interrupting', hint: 'they open it when they want', icon: 'always' },
+    ],
+  },
+  {
+    key: 'tone',
+    prompt: 'How much can it interrupt?',
+    help: 'Asked because the previous answer leaves more than one shape viable — exit intent would have settled it.',
+    options: [
+      {
+        value: 'block',
+        label: 'Interrupt — this matters more than the page',
+        hint: 'overlay pop-up',
+        icon: 'block',
+        onlyWhen: ['arrival', 'engaged'],
+      },
+      { value: 'quiet', label: 'Sit inside the page content', hint: 'inline embed', icon: 'quiet' },
+      { value: 'passive', label: 'Stay out of the way entirely', hint: 'edge tab', icon: 'passive' },
+    ],
   },
 ];

@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { INTERCEPT_SETTING_GROUPS, INTERCEPT_SETTINGS_INTRO, ORDER_OF_EXECUTION_EXAMPLE } from '../data';
+import { slugify } from '../slug';
 
 const ALL_SETTINGS = INTERCEPT_SETTING_GROUPS.flatMap((g) => g.settings);
 
 export default function InterceptSettingsPage() {
-  const [active, setActive] = useState(ALL_SETTINGS[0].name);
-  const setting = ALL_SETTINGS.find((s) => s.name === active) ?? ALL_SETTINGS[0];
+  const { slug } = useParams<{ slug?: string }>();
+  const setting = ALL_SETTINGS.find((s) => slugify(s.name) === slug) ?? ALL_SETTINGS[0];
 
   return (
     <div className="workbench rules-workbench">
@@ -16,9 +17,9 @@ export default function InterceptSettingsPage() {
             <span className="ctl-label">{group.title}</span>
             <div className="stack" role="group">
               {group.settings.map((s) => (
-                <button key={s.name} type="button" aria-pressed={active === s.name} onClick={() => setActive(s.name)}>
+                <Link key={s.name} to={`/settings/${slugify(s.name)}`} aria-pressed={setting.name === s.name}>
                   {s.name}
-                </button>
+                </Link>
               ))}
             </div>
           </div>

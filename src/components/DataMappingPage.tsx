@@ -1,13 +1,11 @@
-import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { DATA_MAPPING_INTRO, DATA_MAPPING_TYPES } from '../data';
+import { slugify } from '../slug';
 
-interface Props {
-  onNavigateToRule: (ruleName: string) => void;
-}
-
-export default function DataMappingPage({ onNavigateToRule }: Props) {
-  const [active, setActive] = useState(DATA_MAPPING_TYPES[0].name);
-  const mapping = DATA_MAPPING_TYPES.find((m) => m.name === active) ?? DATA_MAPPING_TYPES[0];
+export default function DataMappingPage() {
+  const { slug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
+  const mapping = DATA_MAPPING_TYPES.find((m) => slugify(m.name) === slug) ?? DATA_MAPPING_TYPES[0];
 
   return (
     <div className="workbench rules-workbench">
@@ -17,9 +15,9 @@ export default function DataMappingPage({ onNavigateToRule }: Props) {
           <span className="ctl-label">Source</span>
           <div className="stack" role="group">
             {DATA_MAPPING_TYPES.map((m) => (
-              <button key={m.name} type="button" aria-pressed={active === m.name} onClick={() => setActive(m.name)}>
+              <Link key={m.name} to={`/mapping/${slugify(m.name)}`} aria-pressed={mapping.name === m.name}>
                 {m.name}
-              </button>
+              </Link>
             ))}
           </div>
         </div>
@@ -40,7 +38,11 @@ export default function DataMappingPage({ onNavigateToRule }: Props) {
                 <h4>Shared mechanics</h4>
                 <p>
                   {mapping.sharedMechanicsPrefix}{' '}
-                  <button className="inline-link" type="button" onClick={() => onNavigateToRule(mapping.relatedRule)}>
+                  <button
+                    className="inline-link"
+                    type="button"
+                    onClick={() => navigate(`/rules/${slugify(mapping.relatedRule)}`)}
+                  >
                     {mapping.relatedRule} targeting rule →
                   </button>
                   {mapping.sharedMechanicsSuffix && ` — ${mapping.sharedMechanicsSuffix}`}

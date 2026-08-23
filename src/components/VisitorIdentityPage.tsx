@@ -1,13 +1,9 @@
-import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { IDENTITY_COUNTERS, IDENTITY_INTRO, IDENTITY_SECTIONS } from '../data';
 
-interface Props {
-  initialSection?: string;
-}
-
-export default function VisitorIdentityPage({ initialSection }: Props) {
-  const [active, setActive] = useState(initialSection ?? IDENTITY_SECTIONS[0].key);
-  const section = IDENTITY_SECTIONS.find((s) => s.key === active) ?? IDENTITY_SECTIONS[0];
+export default function VisitorIdentityPage() {
+  const { key } = useParams<{ key?: string }>();
+  const section = IDENTITY_SECTIONS.find((s) => s.key === key) ?? IDENTITY_SECTIONS[0];
 
   return (
     <div className="workbench rules-workbench">
@@ -17,9 +13,9 @@ export default function VisitorIdentityPage({ initialSection }: Props) {
           <span className="ctl-label">How uniqueness is defined</span>
           <div className="stack" role="group">
             {IDENTITY_SECTIONS.map((s) => (
-              <button key={s.key} type="button" aria-pressed={active === s.key} onClick={() => setActive(s.key)}>
+              <Link key={s.key} to={`/identity/${s.key}`} aria-pressed={section.key === s.key}>
                 {s.title}
-              </button>
+              </Link>
             ))}
           </div>
         </div>

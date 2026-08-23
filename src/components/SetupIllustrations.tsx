@@ -1,3 +1,34 @@
+export function CxSurveyPrerequisiteIllustration() {
+  return (
+    <div className="illus">
+      <div className="illus-toolbar"><i /><i /><i /><span>CX Feedback workspace</span></div>
+      <div className="illus-body">
+        <p className="illus-label">Surveys in this workspace</p>
+        <div className="illus-project-list">
+          <div className="illus-project-item active">Post-Purchase NPS <small>Ready</small></div>
+          <div className="illus-project-item active">Checkout Exit Survey <small>Ready</small></div>
+        </div>
+        <p className="illus-hint-text">Intercept attaches to one of these — it does not create new surveys.</p>
+      </div>
+    </div>
+  );
+}
+
+export function WebsiteUrlIllustration() {
+  return (
+    <div className="illus">
+      <div className="illus-body">
+        <p className="illus-label">Project settings</p>
+        <div className="illus-field">
+          <span className="illus-field-prefix">Website URL:</span>
+          <span className="illus-field-value">meridiansupply.example</span>
+        </div>
+        <p className="illus-hint-text">Must match the Origin the widget loads from, exactly — including subdomain.</p>
+      </div>
+    </div>
+  );
+}
+
 export function WorkspaceNavIllustration() {
   return (
     <div className="illus">
