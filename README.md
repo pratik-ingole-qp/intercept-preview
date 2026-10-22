@@ -3,7 +3,10 @@
 A documentation and preview tool for QuestionPro's **Intercept** product — replacing the thin public help page
 with something interactive, accurate, and verified against the actual product source.
 
-Live at: https://bhavin-patil-qp.github.io/intercept-preview/
+Live at: https://pratik-ingole-qp.github.io/intercept-preview/
+
+Based on [Bhavin Patil's original](https://github.com/bhavin-patil-qp/intercept-preview) — this copy drops the
+live Intercept tracking snippet from `index.html`.
 
 ## What's here
 
