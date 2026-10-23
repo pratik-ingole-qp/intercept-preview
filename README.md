@@ -6,8 +6,7 @@ with something interactive, accurate, and verified against the actual product so
 Live at: https://pratik-ingole-qp.github.io/intercept-preview/
 
 Based on [Bhavin Patil's original](https://github.com/bhavin-patil-qp/intercept-preview) — this copy's
-Intercept tracking snippet in `index.html` uses its own API key and loads `loader.js` from a local Intercept
-server at `http://localhost:8080`.
+Intercept tracking snippet in `index.html` uses its own API key.
 
 ## What's here
 
